@@ -1,0 +1,16 @@
+# terraform init (just too big), tf state and backup for sensitive info - 
+.terraform/
+terraform.tfstate
+terraform.tfstate.backup
+*.tfvars
+
+# SSH keys
+*.pem
+
+# OS files, mac only but read it was good practice.
+.DS_Store
+
+# Editor files, vscode to block workspace,configs specific to local setup
+.vscode/
+# .swp, temporary swap files that vim/nbano create when editing a file. could be noise.
+*.swp

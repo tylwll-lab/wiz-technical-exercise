@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wiz-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: wiz-app
+  template:
+    metadata:
+      labels:
+        app: wiz-app
+    spec:
+      serviceAccountName: wiz-service-account
+      containers:
+        - name: wiz-app
+          image: 795176247566.dkr.ecr.us-east-1.amazonaws.com/wiz-ecr-repo:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: MONGODB_URI
+              value: "mongodb://admin:wizlab123@10.0.101.74:27017/go-mongodb?authSource=admin"
