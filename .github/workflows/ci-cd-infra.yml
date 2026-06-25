@@ -6,6 +6,7 @@ on: # defines what triggers this workflow
     paths:
       - "terraform/**" # only triggers when terraform files change
       - "k8s/**" # only triggers when kubernetes manifests change
+      - ".github/workflows/**" # triggers on workflow changes
 jobs:
   terraform: # job name
     name: Terraform Plan and Apply # display name in github ui
@@ -33,6 +34,14 @@ jobs:
         with:
           directory: terraform/
           soft_fail: true # pipeline continues even if checkov finds issues, needed for intentional misconfigs or we get stuck
+      - name: Create s3 bucket if it does not exist
+         run: |
+           # s3api is low level bucket commands
+           # head-bucket is an api-call that checks if the bucket exists and if we have permissions to access it
+           # specifies the bucket, then 2>/dev/null to throw any errors away silently
+           #  
+           aws s3api head-bucket --bucket wiz-mongo-backups-tyler 2>/dev/null || \
+           aws s3 mb s3://wiz-mongo-backups-tyler --region us-east-1
       - name: Terraform Init
         working-directory: terraform
         run: terraform init -upgrade # downloads providers and modules defined in main.tf
