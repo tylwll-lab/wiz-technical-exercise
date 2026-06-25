@@ -1,4 +1,4 @@
-name: Wiz CI/CD Pipeline
+name: Wiz Infra CI/CD Pipeline
 
 on: # defines what triggers this workflow
   workflow_dispatch: # allows manual trigger from github ui
