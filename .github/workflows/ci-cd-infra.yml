@@ -14,7 +14,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4 # runs git clone on the vm so our files are accessible
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3.1.2 # downloads and installs terraform binary onto the vm
+        uses: hashicorp/setup-terraform@v3.1.2 # downloads and installs terraform onto the vm
       - name: Setup kubectl
         uses: azure/setup-kubectl@v3 # installs kubectl onto the runner
       - name: Cache Terraform providers
