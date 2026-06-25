@@ -17,7 +17,7 @@ resource "aws_s3_bucket" "mongo_backups" {
 # 2026-06-23 22:00:48        128 user.bson
 # 2026-06-23 22:00:48        171 user.metadata.json
 
- 
+
 resource "aws_s3_bucket_public_access_block" "mongo_backups" {
   bucket                  = aws_s3_bucket.mongo_backups.id
   block_public_acls       = false
@@ -37,15 +37,15 @@ resource "aws_s3_bucket_policy" "mongo_backups" {
       Effect    = "Allow"
       Principal = "*"
       Action    = ["s3:GetObject", "s3:ListBucket"]
-      Resource  = [
+      Resource = [
         aws_s3_bucket.mongo_backups.arn,
         "${aws_s3_bucket.mongo_backups.arn}/*"
       ]
     }]
   })
-# Added this line because I was getting terraform failures because this wasn't finished yet.
-# This says "Before the policy is applied, the public access block must be finished. the second block was completing after the policy applied.
-# depends_on fixed this.
+  # Added this line because I was getting terraform failures because this wasn't finished yet.
+  # This says "Before the policy is applied, the public access block must be finished. the second block was completing after the policy applied.
+  # depends_on fixed this.
 
   depends_on = [aws_s3_bucket_public_access_block.mongo_backups]
 }

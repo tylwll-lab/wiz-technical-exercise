@@ -1,7 +1,7 @@
-# IAM policy that defines what AWS permissions the load balancer controller needs needs
+# IAM policy that defines what AWS permissions the load balancer controller needs
 resource "aws_iam_policy" "alb_controller" {
   name   = "AWSLoadBalancerControllerIAMPolicy"
-  policy = file("iam_policy.json")  # reads the official policy JSON from the terraform directory
+  policy = file("iam_policy.json") # reads the official policy JSON from the terraform directory
 }
 
 # IAM role that the load balancer controller pod gets with IRSA (IAM Roles for Service Accounts)
@@ -12,8 +12,8 @@ resource "aws_iam_role" "alb_controller" {
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [{
-     # allow action below
-      Effect = "Allow" 
+      # allow action below
+      Effect = "Allow"
       Principal = {
         # the OIDC provider for our specific EKS cluster
         Federated = "arn:aws:iam::795176247566:oidc-provider/oidc.eks.us-east-1.amazonaws.com/id/7D3027EED7356AD5E64791F29AE2C833"
@@ -50,20 +50,20 @@ resource "aws_iam_role_policy_attachment" "alb_controller" {
 # installs the load balancer controller intro helm -> which then reads the ingress.yaml and creates the ALB on AWS.
 resource "helm_release" "alb_controller" {
   name             = "aws-load-balancer-controller"
-  repository       = "https://aws.github.io/eks-charts"  # official AWS EKS charts repo
+  repository       = "https://aws.github.io/eks-charts" # official AWS EKS charts repo
   chart            = "aws-load-balancer-controller"
-  namespace        = "kube-system"  # install into kube-system namespace
+  namespace        = "kube-system" # install into kube-system namespace
   create_namespace = true
 
   values = [
     yamlencode({
-      clusterName = "wiz-cluster"  # tells the controller which cluster it's managing
-      vpcId = module.vpc.vpc_id
+      clusterName = "wiz-cluster" # tells the controller which cluster it's managing
+      vpcId       = module.vpc.vpc_id
       serviceAccount = {
-        create = true  # create the service account automatically
-        name   = "aws-load-balancer-controller"  # name of the service account
+        create = true                           # create the service account automatically
+        name   = "aws-load-balancer-controller" # name of the service account
         annotations = {
-          "eks.amazonaws.com/role-arn" = aws_iam_role.alb_controller.arn  # links service account to IAM role via IRSA
+          "eks.amazonaws.com/role-arn" = aws_iam_role.alb_controller.arn # links service account to IAM role via IRSA
         }
       }
     })

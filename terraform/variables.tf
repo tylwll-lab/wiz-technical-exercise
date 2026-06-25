@@ -1,25 +1,25 @@
 # These are configurable inputs referenced by terraform.
 # This offers a mechanism of "change here, change everywhere."
- 
+
 # AWS Region where all the resources are deployed:
 variable "aws_region" {
   description = "aws region that application is hosted"
-  type = string
-  default = "us-east-1"
+  type        = string
+  default     = "us-east-1"
 }
 
 # Project name label, it's not actively referenced in my terraform files.
 variable "project_name" {
   description = "name of the wiz project"
-  type = string
-  default = "wiz-technical-exercise"
+  type        = string
+  default     = "wiz-technical-exercise"
 }
 
 # EC2 instance size, referenced in ec2.tf as var.ec2_instance_type.
-variable "ec2_instance_type"  {
+variable "ec2_instance_type" {
   description = "ec2 compute instance type on AWS"
-  type = string 
-  default = "t3.micro"
+  type        = string
+  default     = "t3.micro"
 }
 
 # This is currently just an empty string and unused.
@@ -30,9 +30,9 @@ variable "ec2_instance_type"  {
 
 variable "mdb_credentials" {
   description = "mongodb credentials"
-  type = string
-  default = ""
-  sensitive = true
+  type        = string
+  default     = ""
+  sensitive   = true
 }
 
 # example of a better method:
