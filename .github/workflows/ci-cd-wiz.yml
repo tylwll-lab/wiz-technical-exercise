@@ -1,0 +1,56 @@
+name: Wiz CI/CD Pipeline
+
+on: # defines what triggers this workflow
+  workflow_dispatch: # allows manual trigger from github ui
+  push:
+    branches: ["main"] # triggers on push to main branch
+
+jobs:
+  terraform: # job name
+    name: Terraform Plan and Apply # display name in github ui
+    runs-on: ubuntu-latest # github spins up a fresh ubuntu VM for every run
+
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v4 # runs git clone on the vm so our files are accessible
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3.1.2 # downloads and installs terraform binary onto the vm
+
+      - name: Cache Terraform providers
+        uses: actions/cache@v3 # saves and restores a directory between runs to avoid re-downloading
+        with:
+          path: terraform/.terraform # the directory containing downloaded providers to cache
+          key: terraform-${{ hashFiles('terraform/.terraform.lock.hcl') }} # unique cache key - changes when lock file changes forcing a fresh download
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4.0.2 # sets AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY as environment variables on the vm
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Run Checkov IaC Security Scan
+        uses: bridgecrewio/checkov-action@v12 # installs checkov and runs it against our terraform files looking for misconfigurations
+        with:
+          directory: terraform/
+          soft_fail: true # exit code 0 even if issues found - pipeline continues instead of stopping
+
+      - name: Terraform Init
+        working-directory: terraform
+        run: terraform init # reads main.tf and downloads the AWS and Helm providers defined there
+
+      - name: Terraform Validate and Format
+        working-directory: terraform
+        run: |
+          terraform fmt -recursive # rewrites .tf files to match hashicorp
+          terraform validate
+
+      - name: Terraform Plan
+        working-directory: terraform
+        run: terraform plan
+
+      - name: Terraform Apply
+        working-directory: terraform
+        run: terraform apply -auto-approve # executes the plan and makes real changes in AWS without prompting for confirmation
