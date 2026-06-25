@@ -1,20 +1,20 @@
-#service account that the pod runs with / identity the pod runs as
+# service account that the pod runs with, could be stated as the identity the pod runs as
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: wiz-service-account
+  name: wiz-service-account #the account we assign the app in deployment.yaml
   namespace: default
 ---
-#ClusterRoleBinding gives the service account full admin rights to the cluster. BAD!
+# ClusterRoleBinding gives the service account full admin rights to the cluster. BAD!
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   name: wiz-cluster-admin-binding
-subjects:
+subjects: # what service account we are binding
   -  kind: ServiceAccount
      name: wiz-service-account
      namespace: default
-roleRef:
+roleRef: # what role we're binding it to
   kind: ClusterRole
   name: cluster-admin
   apiGroup: rbac.authorization.k8s.io

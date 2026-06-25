@@ -3,21 +3,24 @@ kind: Deployment
 metadata:
   name: wiz-app
 spec:
-  replicas: 1
+  replicas: 1  # create one pod for my app
   selector:
     matchLabels:
-      app: wiz-app
+      app: wiz-app # tells the deployment to manage any pod that has the wiz-app label 
   template:
     metadata:
       labels:
-        app: wiz-app
+        app: wiz-app # required to specifiy the label for matchLabels
     spec:
-      serviceAccountName: wiz-service-account
+      serviceAccountName: wiz-service-account # service account created in rbac.yaml
       containers:
         - name: wiz-app
-          image: 795176247566.dkr.ecr.us-east-1.amazonaws.com/wiz-ecr-repo:latest
-          ports:
+          image: 795176247566.dkr.ecr.us-east-1.amazonaws.com/wiz-ecr-repo:latest # image uploaded to ECR w/ app code
+          ports: # declaration that the container is listening on the pod's port 8080
             - containerPort: 8080
-          env:
+          env: # environment variable, so app can login to mongodb on the EC2 instance  
             - name: MONGODB_URI
-              value: "mongodb://admin:wizlab123@10.0.101.74:27017/go-mongodb?authSource=admin"
+              value: "mongodb://admin:wizlab123@mongodb.route53rocks.internal:27017/go-mongodb?authSource=admin"
+                                                                                  #/go-mongodb?authSource=admin" is a query parameter that tells mongo where to look up the user credentials. We created the admin user in the admin database.
+                                                                                  # it will check for the admin user in the admin database since we have authSource=admin
+                                                                                  #/go-mongodb specifies the application to use the go-mongodb database for its data.  

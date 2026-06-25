@@ -4,8 +4,17 @@ metadata:
   name: wiz-service
 spec:
   selector:
-    app: wiz-app
+    app: wiz-app # the label/matchLabel we provided to app in deployment.yaml
   ports:
-    - port: 80
+    - port: 80  # maps port 80 to 8080
       targetPort: 8080
-  type: ClusterIP
+  type: ClusterIP # provides a static IP address that that is only reachable inside the kubernetes cluster
+                  # When pods are destroyed and rebuilt - they have changing ip's.
+                  # This service provides a fixed virtual IP (cluster ip) that stays the same.
+                  # Other resources like ingress(alb) in ingress.yaml, can send traffic to this cluster ip
+                  # The service then forwards the traffic to the correct pod using the selector in spec:
+                  # (this is our in cluster load balancer, this is what the ingress(alb) is talking to.)
+
+
+
+

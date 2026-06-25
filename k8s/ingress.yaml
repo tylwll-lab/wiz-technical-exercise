@@ -2,18 +2,19 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: wiz-ingress
-  annotations:
-    kubernetes.io/ingress.class: alb
-    alb.ingress.kubernetes.io/scheme: internet-facing
-    alb.ingress.kubernetes.io/target-type: ip
+  annotations: # sticky notes on an object, extra instructions
+    kubernetes.io/ingress.class: alb # use the aws alb controller for this ingress
+    alb.ingress.kubernetes.io/scheme: internet-facing # accessible from internet
+    alb.ingress.kubernetes.io/target-type: ip # send traffic directly to pod ip's (recommended w/ eks)
+                                              # this also registers the pod ip's as targets in ALB (aws)
 spec:
-  rules:
-    - http:
+  rules: # routing rules
+    - http: # for http
         paths:
-          - path: /
+          - path: / # route all traffic to root path of app
             pathType: Prefix
             backend:
               service:
-                name: wiz-service
+                name: wiz-service # service matching 8080 to 80 in service.yaml
                 port:
-                   number: 80
+                   number: 80 # port my service is listening on

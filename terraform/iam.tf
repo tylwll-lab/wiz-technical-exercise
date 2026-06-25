@@ -17,7 +17,8 @@ resource "aws_iam_role" "ec2_role" {
 # The next line attaches the EC2_admin role to administrator access policy. It is very dangerous.
 # AdministratorAccess grants full access to every AWS service on the account from the EC2 instance.
 # 169.254.169.254 is the AWS instance metadata service. It's an endpoint (HTTP) that lives inside every EC2 Instance.
-# 
+# It allows processes running on the EC2 instance to retrieve temporary credentials for the IAM role attached to the instance.
+#
 # DEMO on EC2:
 # TOKEN=$(curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")
 # curl -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/iam/security-credentials/wiz-ec2-role
