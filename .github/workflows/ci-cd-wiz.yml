@@ -39,7 +39,7 @@ jobs:
 
       - name: Terraform Init
         working-directory: terraform
-        run: terraform init # reads main.tf and downloads the AWS and Helm providers defined there
+        run: terraform init -upgrade # reads main.tf and downloads the AWS and Helm providers defined there, 
 
       - name: Terraform Validate and Format
         working-directory: terraform
