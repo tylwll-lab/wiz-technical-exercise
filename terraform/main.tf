@@ -2,6 +2,12 @@
 # Referenced when running terraform init, it downloads these.
 terraform {
   required_version = ">= 1.15.6"
+# backs up our terraform state file to the s3 bucket used for mongo dumps so the ci/cd pipeline can know the state of the cluster.
+  backend "s3" {
+      bucket = "wiz-mongo-backups-tyler"
+      key    = "terraform/state/terraform.tfstate"
+      region = "us-east-1"
+    }
   required_providers {
     aws = {
       source  = "hashicorp/aws"
