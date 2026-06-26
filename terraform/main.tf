@@ -4,7 +4,7 @@ terraform {
   required_version = ">= 1.15.6"
   # backs up our terraform state file to the s3 bucket used for mongo dumps so the ci/cd pipeline can know the state of the cluster.
   backend "s3" {
-    bucket = "wiz-mongo-backups-tyler"
+    bucket = "wiz-state-backups-tyler"
     key    = "terraform/state/terraform.tfstate"
     region = "us-east-1"
   }
