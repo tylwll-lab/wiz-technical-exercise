@@ -53,10 +53,13 @@ jobs:
       - name: Terraform Plan
         working-directory: terraform
         run: terraform plan # dry run - shows what will change without making changes
-      - name: Terraform Apply
+      - name: terraform apply eks/vpc to get kubeconfig for helm
         working-directory: terraform
-        run: terraform apply -auto-approve # creates or updates AWS infrastructure
+        run: terraform apply -auto-approve -target=module.eks -target=module.vpc # builds cluster first so kubeconfig can be updated before helm runs
       - name: Update kubeconfig
-        run: aws eks update-kubeconfig --region us-east-1 --name wiz-cluster # configures kubectl to talk to our EKS cluster
+        run: aws eks update-kubeconfig --region us-east-1 --name wiz-cluster # configures kubectl to talk to our EKS cluster before helm install
+      - name: Terraform Apply - full
+        working-directory: terraform
+        run: terraform apply -auto-approve # applies remaining resources including helm release with valid kubeconfig
       - name: Apply Kubernetes manifests
         run: kubectl apply -f k8s/ # applies all yaml files in the k8s folder

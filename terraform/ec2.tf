@@ -4,11 +4,9 @@ module "ec2" {
   name   = "wiz-ec2-instance" # 
   # pulls out instance type from variables.tf which lists t3.micro 
   instance_type = var.ec2_instance_type
-  # ssh key pair name i made in aws
   key_name = "tylwiz"
   # control plane audit logging with CloudWatch -> provides EC2 metrics.
   monitoring = true
-  # pulls the first subnet out of the vpc module (vpc.tf) and selects the first subnet.
   subnet_id = module.vpc.public_subnets[0]
   # amazon machine image, it is ubuntu 20.04 LTS from 2022. Requirement for outdated linux.
   ami = "ami-0149b2da6ceec4bb0"
