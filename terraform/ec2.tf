@@ -44,7 +44,7 @@ resource "aws_security_group" "mongo_sg" {
     from_port   = 27017
     to_port     = 27017
     protocol    = "tcp"
-    cidr_blocks = ["10.0.1.0/24", "10.0.2.0/24"]
+    cidr_blocks = ["10.0.0.26", "10.0.0.64/26"]
     description = "allow mongodb  access from eks private subnets"
   }
   # allows all outbound traffic - need internet i can install packages, also backup to S3
