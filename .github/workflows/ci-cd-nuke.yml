@@ -1,6 +1,6 @@
 name: Destroy Infrastructure
 on:
-  workflow_dispatch:    # we set this empty so we just got a togglable workflow in github
+  workflow_dispatch: # manual trigger only - never runs automatically on push
 
 jobs:
   destroy:
@@ -23,23 +23,30 @@ jobs:
           aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Update kubeconfig
-        run: aws eks update-kubeconfig --region us-east-1 --name wiz-cluster
+        # || true so pipeline continues even if cluster doesnt exist
+        run: aws eks update-kubeconfig --region us-east-1 --name wiz-cluster || true
 
-      - name: Delete ingress so ALB is removed before destroy
-        run: kubectl delete ingress wiz-ingress --ignore-not-found
+      - name: Delete ingress and clear finalizer
+        run: |
+          # delete the ingress - tells the load balancer controller to remove the ALB
+          kubectl delete ingress wiz-ingress --ignore-not-found || true
+          # immediately patch the finalizer to empty so deletion never hangs
+          # finalizer is a lock kubernetes puts on the ingress to prevent deletion until the ALB is cleaned up
+          # if the controller gets confused and never removes it we force clear it here
+          kubectl patch ingress wiz-ingress -p '{"metadata":{"finalizers":[]}}' --type=merge || true
 
-      - name: Wait for ALB to be deleted # This caused a headache during testing
+      - name: Wait for ALB to be deleted
+        # 60 second buffer to give the controller time to remove the ALB before terraform destroy
         run: sleep 60
 
-      - name: Empty S3 bucket before destroy # you cant delete an s3 bucket that has data, so we have to remove it.
-        run: aws s3 rm s3://wiz-mongo-backups-tyler --recursive --quiet || true
-
-      - name: Terraform Init 
+      - name: Terraform Init
         working-directory: terraform
         run: terraform init -upgrade
 
       - name: Terraform Destroy
         working-directory: terraform
+        # force_destroy = true on the S3 bucket in s3.tf handles emptying the bucket automatically
+        # so we no longer need to manually empty it before destroy
         run: terraform destroy -auto-approve
 
-# Purpose of this is a togglable "clean slate" workflow, then a simple push to infra/app ci/cd should redeploy everything automatically.
+# Purpose: togglable clean slate button. After destroy push to terraform/ or trigger infra pipeline to rebuild.

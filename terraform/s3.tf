@@ -1,6 +1,8 @@
 # Creates the s3 bucket resource to house our mongo backups.
 resource "aws_s3_bucket" "mongo_backups" {
   bucket = "wiz-mongo-backups-tyler"
+# adding force destroy because the nuke pipeline doesnt work as the bucket has objects.
+  force_destroy = true 
   tags = {
     Terraform   = "true"
     Environment = "dev"
