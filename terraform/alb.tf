@@ -4,10 +4,9 @@ resource "aws_iam_policy" "alb_controller" {
   policy = file("iam_policy.json") # reads the official policy JSON from the terraform directory
 }
 
-# IAM role that the load balancer controller pod gets with IRSA (IAM Roles for Service Accounts)
+# IAM role that the load balancer controller pod gets with IRSA
 resource "aws_iam_role" "alb_controller" {
   name = "AmazonEKSLoadBalancerControllerRole"
-
   # trust policy allows the OIDC provider to exchange kubernetes tokens for AWS credentials
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -15,15 +14,15 @@ resource "aws_iam_role" "alb_controller" {
       # allow action below
       Effect = "Allow"
       Principal = {
-        # the OIDC provider for our specific EKS cluster
-        Federated = "arn:aws:iam::795176247566:oidc-provider/oidc.eks.us-east-1.amazonaws.com/id/7D3027EED7356AD5E64791F29AE2C833"
+        # the OIDC provider for our specific EKS cluster - uses module output so it works after destroy and rebuild
+        Federated = module.eks.oidc_provider_arn
       }
       # allows kubernetes service accounts to assume this role via web identity
       Action = "sts:AssumeRoleWithWebIdentity"
       Condition = {
         StringEquals = {
           # only the aws-load-balancer-controller service account in kube-system can assume this role
-          "oidc.eks.us-east-1.amazonaws.com/id/7D3027EED7356AD5E64791F29AE2C833:sub" = "system:serviceaccount:kube-system:aws-load-balancer-controller"
+          "${module.eks.oidc_provider}:sub" = "system:serviceaccount:kube-system:aws-load-balancer-controller"
         }
       }
     }]
@@ -31,14 +30,15 @@ resource "aws_iam_role" "alb_controller" {
 }
 
 # security group rule so our load balancer can communicate to the kubernetes node
+# references EKS module outputs instead of hardcoded IDs so it works after destroy and rebuild
 resource "aws_security_group_rule" "alb_to_nodes" {
-  type                     = "ingress"
-  from_port                = 8080
-  to_port                  = 8080
-  protocol                 = "tcp"
-  security_group_id        = "sg-08a43349d160a2926"
-  source_security_group_id = "sg-005847eb84c40f5bf"
-  description              = "Allow ALB to reach pods on port 8080"
+  type = "ingress"
+  from_port = 8080
+  to_port = 8080
+  protocol = "tcp"
+  security_group_id = module.eks.node_security_group_id # EKS node security group
+  source_security_group_id = module.eks.cluster_security_group_id # EKS cluster security group
+  description = "Allow ALB to reach pods on port 8080"
 }
 
 # attaches the IAM policy to the IAM role
@@ -47,14 +47,13 @@ resource "aws_iam_role_policy_attachment" "alb_controller" {
   policy_arn = aws_iam_policy.alb_controller.arn
 }
 
-# installs the load balancer controller intro helm -> which then reads the ingress.yaml and creates the ALB on AWS.
+# installs the load balancer controller into helm -> which then reads the ingress.yaml and creates the ALB on AWS.
 resource "helm_release" "alb_controller" {
   name             = "aws-load-balancer-controller"
   repository       = "https://aws.github.io/eks-charts" # official AWS EKS charts repo
   chart            = "aws-load-balancer-controller"
   namespace        = "kube-system" # install into kube-system namespace
   create_namespace = true
-
   values = [
     yamlencode({
       clusterName = "wiz-cluster" # tells the controller which cluster it's managing
@@ -68,7 +67,6 @@ resource "helm_release" "alb_controller" {
       }
     })
   ]
-
   # wait for the IAM role and policy to be ready before installing, added this to prevent error
   depends_on = [aws_iam_role_policy_attachment.alb_controller]
 }

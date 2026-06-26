@@ -3,14 +3,14 @@ module "vpc" {
   source = "terraform-aws-modules/vpc/aws"
   name   = "wiz-vpc"
   # assigns the 10.0.0.0/16 range to the entire VPC. 65K addresses (probably too large)
-  cidr = "10.0.0.0/16"
+  cidr = "10.0.0.0/24"
   # This will auto-assign public IP's to instances launched in public subnets defined below. This allows me to SSH into it from my local PC.
   map_public_ip_on_launch = true
   # Defines the availaility zones in which the VPC spans.
   azs = ["us-east-1a", "us-east-1b"]
   # Creating private/public subnets.
-  private_subnets = ["10.0.1.0/24", "10.0.2.0/24"]
-  public_subnets  = ["10.0.101.0/24", "10.0.102.0/24"]
+  private_subnets = ["10.0.0.0/26", "10.0.0.0/26"]
+  public_subnets  = ["10.0.0.128/26", "10.0.0.128/26"]
 
   # enables a nat gateway so that the resources inside the cluster can communicate to the internet.
   enable_nat_gateway = true

@@ -1,0 +1,45 @@
+name: Destroy Infrastructure
+on:
+  workflow_dispatch:    # we set this empty so we just got a togglable workflow in github
+
+jobs:
+  destroy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3.1.2
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v3
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4.0.2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Update kubeconfig
+        run: aws eks update-kubeconfig --region us-east-1 --name wiz-cluster
+
+      - name: Delete ingress so ALB is removed before destroy
+        run: kubectl delete ingress wiz-ingress --ignore-not-found
+
+      - name: Wait for ALB to be deleted # This caused a headache during testing
+        run: sleep 60
+
+      - name: Empty S3 bucket before destroy # you cant delete an s3 bucket that has data, so we have to remove it.
+        run: aws s3 rm s3://wiz-mongo-backups-tyler --recursive --quiet || true
+
+      - name: Terraform Init 
+        working-directory: terraform
+        run: terraform init -upgrade
+
+      - name: Terraform Destroy
+        working-directory: terraform
+        run: terraform destroy -auto-approve
+
+# Purpose of this is a togglable "clean slate" workflow, then a simple push to infra/app ci/cd should redeploy everything automatically.
