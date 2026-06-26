@@ -6,34 +6,34 @@ resource "aws_iam_policy" "alb_controller" {
 # IAM role that the load balancer controller pod gets with IRSA
 resource "aws_iam_role" "alb_controller" {
   name = "AmazonEKSLoadBalancerControllerRole"
-  # trust policy allows the OIDC provider to exchange kubernetes tokens for AWS credentials
+# trust policy allows the OIDC provider to exchange kubernetes tokens for AWS credentials
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [{
-      # allow action below
       Effect = "Allow"
       Principal = {
-        # the OIDC provider for our specific EKS cluster - uses module output so it works after destroy and rebuild
+# federated = trust is coming from an external identifty provider rather than an IAM user. 
+# the EKS cluster has a mechanism called OpenID Connect (OIDC), which allows non IAM users to make changes. This establishes that link.
         Federated = module.eks.oidc_provider_arn
       }
-      # allows kubernetes service accounts to assume this role via web identity
+# allows kubernetes service accounts to assume this role via web identity
       Action = "sts:AssumeRoleWithWebIdentity"
       Condition = {
         StringEquals = {
-          # only the aws-load-balancer-controller service account in kube-system can assume this role
+# only the aws-load-balancer-controller service account in kube-system can assume this role
           "${module.eks.oidc_provider}:sub" = "system:serviceaccount:kube-system:aws-load-balancer-controller"
         }
       }
     }]
   })
 }
-# attaches the IAM policy to the IAM role
+# attaches the IAM policy to the IAM role for the ALB controller
 resource "aws_iam_role_policy_attachment" "alb_controller" {
   role       = aws_iam_role.alb_controller.name
   policy_arn = aws_iam_policy.alb_controller.arn
 }
-# creates the iam role for the EC2 instance, encodes into json as that is how AWS receieves policy information.
-# The role policy allows the ec2 instance to take the role of the aws_iam_role.
+# creates the iam role for the EC2 instance, aws takes policy info from json
+# the trust policy allows the EC2 service to assume this role on boot
 resource "aws_iam_role" "ec2_role" {
   name = "wiz-ec2-role"
   assume_role_policy = jsonencode({

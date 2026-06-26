@@ -1,18 +1,11 @@
-# These are configurable inputs referenced by terraform.
-# This offers a mechanism of "change here, change everywhere."
+# these are configurable inputs referenced by terraform.
+# this offers a mechanism of "change here, change everywhere."
 
-# AWS Region where all the resources are deployed:
+# aws region where all the resources are deployed:
 variable "aws_region" {
   description = "aws region that application is hosted"
   type        = string
   default     = "us-east-1"
-}
-
-# Project name label, it's not actively referenced in my terraform files.
-variable "project_name" {
-  description = "name of the wiz project"
-  type        = string
-  default     = "wiz-technical-exercise"
 }
 
 # EC2 instance size, referenced in ec2.tf as var.ec2_instance_type.
@@ -66,7 +59,7 @@ variable "mongo_bucket_name" {
   default     = "wiz-mongo-backups-tyler"
 }
 
-# AMI ID for the EC2 instance, ubuntu 20.04 LTS from 2022
+# ami id for the EC2 instance, ubuntu 20.04 LTS from 2022
 variable "ami_id" {
   description = "ami for the ec2 instance, outdated ubuntu 20.04 as required by exercise"
   type        = string

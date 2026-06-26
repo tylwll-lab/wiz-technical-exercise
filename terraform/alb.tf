@@ -1,14 +1,3 @@
-# security group rule so our load balancer can communicate to the kubernetes node
-# references EKS module outputs instead of hardcoded IDs so it works after destroy and rebuild
-resource "aws_security_group_rule" "alb_to_nodes" {
-  type = "ingress"
-  from_port = 8080
-  to_port = 8080
-  protocol = "tcp"
-  security_group_id = module.eks.node_security_group_id # EKS node security group
-  source_security_group_id = module.eks.cluster_security_group_id # EKS cluster security group
-  description = "Allow ALB to reach pods on port 8080"
-}
 # installs the load balancer controller into helm -> which then reads the ingress.yaml and creates the ALB on AWS.
 resource "helm_release" "alb_controller" {
   name             = "aws-load-balancer-controller"
@@ -18,17 +7,23 @@ resource "helm_release" "alb_controller" {
   create_namespace = true
   values = [
     yamlencode({
-      clusterName = "wiz-cluster" # tells the controller which cluster it's managing
+# tells the controller which cluster it's managing
+      clusterName = var.cluster_name 
       vpcId       = module.vpc.vpc_id
       serviceAccount = {
-        create = true                           # create the service account automatically
-        name   = "aws-load-balancer-controller" # name of the service account
+# create the service account automatically
+        create = true
+# name of the service account                           
+        name   = "aws-load-balancer-controller"
         annotations = {
-          "eks.amazonaws.com/role-arn" = aws_iam_role.alb_controller.arn # links service account to IAM role via IRSA
+# links service account to IAM role via IRSA (iam.tf)
+          "eks.amazonaws.com/role-arn" = aws_iam_role.alb_controller.arn
         }
       }
     })
   ]
-  # wait for the IAM role and policy to be ready before installing, added this to prevent error
+# helm is installing the alb controller before IAM role and policy attachment
+# wait for the IAM role and policy to be ready before installing, added this to prevent error
   depends_on = [aws_iam_role_policy_attachment.alb_controller]
 }
+

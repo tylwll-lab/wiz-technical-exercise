@@ -1,19 +1,17 @@
 # outputs print important values to the terminal after terraform apply completes
 # these are values that only exist after AWS creates the resources (IPs, URLs, ARNs etc)
-
 # name of the EKS cluster - used to reference the cluster in kubectl and aws cli commands
 output "eks_cluster_name" {
   value = module.eks.cluster_name
 }
 
-# EKS API endpoint URL - written to ~/.kube/config when running aws eks update-kubeconfig
-# this is what kubectl sends commands to
+# EKS API endpoint URL to write to ~/.kube/config when running aws eks update-kubeconfig
 output "eks_cluster_endpoint" {
   value = module.eks.cluster_endpoint
 }
 
 # public IP of the EC2 MongoDB instance, changes every time EC2 is destroyed and recreated
-# used to SSH in and also to update the EC2 IP in deployment.yaml for the mongoDB environment variable.
+# used to SSH in 
 output "ec2_public_ip" {
   value = module.ec2.public_ip
 }
