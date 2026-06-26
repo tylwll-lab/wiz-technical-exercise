@@ -9,8 +9,8 @@ module "vpc" {
   # Defines the availaility zones in which the VPC spans.
   azs = ["us-east-1a", "us-east-1b"]
   # Creating private/public subnets.
-  private_subnets = ["10.0.0.0/26", "10.0.0.0/26"]
-  public_subnets  = ["10.0.0.128/26", "10.0.0.128/26"]
+  private_subnets = ["10.0.0.0/26", "10.0.0.64/26"]
+  public_subnets  = ["10.0.0.128/26", "10.0.0.192/26"]
 
   # enables a nat gateway so that the resources inside the cluster can communicate to the internet.
   enable_nat_gateway = true
