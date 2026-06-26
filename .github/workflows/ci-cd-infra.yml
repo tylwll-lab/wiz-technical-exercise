@@ -40,11 +40,11 @@ jobs:
           # head-bucket is an api-call that checks if the bucket exists and if we have permissions to access it
           # specifies the bucket, then 2>/dev/null to throw any errors away silently
           #  
-          aws s3api head-bucket --bucket wiz-mongo-backups-tyler 2>/dev/null || \
-          aws s3 mb s3://wiz-mongo-backups-tyler --region us-east-1
+          aws s3api head-bucket --bucket wiz-state-backups-tyler 2>/dev/null || \
+          aws s3 mb s3://wiz-state-backups-tyler --region us-east-1
       - name: Terraform Init
         working-directory: terraform
-        run: terraform init -upgrade # downloads providers and modules defined in main.tf
+        run: terraform init -upgrade -reconfigure # downloads providers and modules defined in main.tf # added reconfigure due to ci/cd testing
       - name: Terraform Validate and Format
         working-directory: terraform
         run: |
