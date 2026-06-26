@@ -1,8 +1,8 @@
 # Creates the s3 bucket resource to house our mongo backups.
 resource "aws_s3_bucket" "mongo_backups" {
-  bucket = "wiz-mongo-backups-tyler"
+  bucket = var.mongo_bucket_name
 # adding force destroy because the nuke pipeline doesnt work as the bucket has objects.
-  force_destroy = true 
+  force_destroy = true
   tags = {
     Terraform   = "true"
     Environment = "dev"
@@ -11,14 +11,13 @@ resource "aws_s3_bucket" "mongo_backups" {
 
 # AWS blocks access by default to all S3 buckets that are created as a safety precaution.
 # I turned off all 4 parameters to make the bucket fully accessible. I believe this satifies the requirement of the bucket needing read/write from the internet.
-# Anyone with aws plugin installed can run: 
+# Anyone with aws plugin installed can run:
 # aws s3 ls s3://wiz-mongo-backups-tyler/ --no-sign-request.
 # aws s3 ls s3://wiz-mongo-backups-tyler/go-mongodb/ --no-sign-request
-# 
+#
 # Output:
 # 2026-06-23 22:00:48        128 user.bson
 # 2026-06-23 22:00:48        171 user.metadata.json
-
 
 resource "aws_s3_bucket_public_access_block" "mongo_backups" {
   bucket                  = aws_s3_bucket.mongo_backups.id

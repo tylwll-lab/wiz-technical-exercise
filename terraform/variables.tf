@@ -26,7 +26,7 @@ variable "ec2_instance_type" {
 # the MongoDB password is hardcoded into the environment variable of the EC2 instance.
 # For improved security later on, there is a .tfvars file I could use. This would be in the terraform folder.
 # I could set the mongodb credentials here, and then exclude the tfvars file from the github repo, so it couldn't be pulled.
-# I could also use AWS Secrets Manager from my research, but this is for production level infra. 
+# I could also use AWS Secrets Manager from my research, but this is for production level infra.
 
 variable "mdb_credentials" {
   description = "mongodb credentials"
@@ -39,7 +39,7 @@ variable "mdb_credentials" {
 #
 # define the variables here in variables.tf but do not give a value (remove the default = xyz)
 # create a .tfvars file, then have the password stored there - excluded from the github repo.
-# 
+#
 # variables.tf:
 #
 # variable "mdb_credentials" {
@@ -51,3 +51,24 @@ variable "mdb_credentials" {
 # mdb_credentails = "xyz"
 #
 # i can access the variables locally and hide the hardcoded stuff in the repo.
+
+# EKS cluster name, referenced in eks.tf and alb.tf
+variable "cluster_name" {
+  description = "name of the eks cluster"
+  type        = string
+  default     = "wiz-cluster"
+}
+
+# S3 bucket name for MongoDB backups, referenced in s3.tf
+variable "mongo_bucket_name" {
+  description = "s3 bucket name for mongodb backups"
+  type        = string
+  default     = "wiz-mongo-backups-tyler"
+}
+
+# AMI ID for the EC2 instance, ubuntu 20.04 LTS from 2022
+variable "ami_id" {
+  description = "ami for the ec2 instance, outdated ubuntu 20.04 as required by exercise"
+  type        = string
+  default     = "ami-0149b2da6ceec4bb0"
+}
