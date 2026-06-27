@@ -1,28 +1,23 @@
 name: Wiz Infra CI/CD Pipeline
-on: # defines what triggers this workflow
-  workflow_dispatch: # allows manual trigger from github ui
+on: # triggers for the workflow
+  workflow_dispatch: # github ui button
   push:
-    branches: ["main"] # triggers on push to main branch
+    branches: ["main"]
     paths:
-      - "terraform/**" # only triggers when terraform files change
-      - "k8s/**" # only triggers when kubernetes manifests change
-      - ".github/workflows/**" # triggers on workflow changes
+      - "terraform/**"
+      - "k8s/**"
+      - ".github/workflows/**"
 jobs:
-  terraform: # job name
+  terraform-creation:
     name: Terraform Plan and Apply # display name in github ui
-    runs-on: ubuntu-latest # github spins up a fresh ubuntu VM for every run
+    runs-on: ubuntu-latest # runner
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4 # runs git clone on the vm so our files are accessible
+        uses: actions/checkout@v4
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3.1.2 # downloads and installs terraform onto the vm
       - name: Setup kubectl
-        uses: azure/setup-kubectl@v3 # installs kubectl onto the runner
-      - name: Cache Terraform providers
-        uses: actions/cache@v3 # saves and restores a directory between runs to avoid re-downloading
-        with:
-          path: terraform/.terraform # the directory containing downloaded providers to cache
-          key: terraform-${{ hashFiles('terraform/.terraform.lock.hcl') }} # unique cache key - changes when lock file changes forcing a fresh download
+        uses: azure/setup-kubectl@v3
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4.0.2 # sets AWS credentials as environment variables on the vm
         with:
@@ -39,12 +34,11 @@ jobs:
           # s3api is low level bucket commands
           # head-bucket is an api-call that checks if the bucket exists and if we have permissions to access it
           # specifies the bucket, then 2>/dev/null to throw any errors away silently
-          #  
           aws s3api head-bucket --bucket wiz-state-backups-tyler 2>/dev/null || \
           aws s3 mb s3://wiz-state-backups-tyler --region us-east-1
       - name: Terraform Init
         working-directory: terraform
-        run: terraform init -upgrade -reconfigure # downloads providers and modules defined in main.tf # added reconfigure due to ci/cd testing
+        run: terraform init -upgrade -reconfigure # downloads providers and modules defined in main.tf # added reconfigure due to ci/cd testing (backend/tfstate file)
       - name: Terraform Validate and Format
         working-directory: terraform
         run: |
@@ -52,7 +46,7 @@ jobs:
           terraform validate # checks for syntax errors
       - name: Terraform Plan
         working-directory: terraform
-        run: terraform plan # dry run - shows what will change without making changes
+        run: terraform plan # dry run
       - name: terraform apply eks/vpc to get kubeconfig for helm
         working-directory: terraform
         run: terraform apply -auto-approve -target=module.eks -target=module.vpc # builds cluster first so kubeconfig can be updated before helm runs
@@ -60,6 +54,6 @@ jobs:
         run: aws eks update-kubeconfig --region us-east-1 --name wiz-cluster # configures kubectl to talk to our EKS cluster before helm install
       - name: Terraform Apply - full
         working-directory: terraform
-        run: terraform apply -auto-approve # applies remaining resources including helm release with valid kubeconfig
+        run: terraform apply -auto-approve
       - name: Apply Kubernetes manifests
         run: kubectl apply -f k8s/ # applies all yaml files in the k8s folder

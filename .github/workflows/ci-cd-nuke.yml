@@ -1,9 +1,9 @@
-name: Destroy Infrastructure
+name: Nuke
 on:
-  workflow_dispatch: # manual trigger only - never runs automatically on push
+  workflow_dispatch: # manual trigger only
 
 jobs:
-  destroy:
+  nuke:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -23,16 +23,16 @@ jobs:
           aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Update kubeconfig
-        # || true so pipeline continues even if cluster doesnt exist
+        # || true so pipeline continues even if cluster doesnt exist, if it fails, run "true" so it continues
         run: aws eks update-kubeconfig --region us-east-1 --name wiz-cluster || true
 
       - name: Delete ingress and clear finalizer
         run: |
-          # delete the ingress - tells the load balancer controller to remove the ALB
+          # delete the ingress, tells the load balancer controller to remove the ALB
           kubectl delete ingress wiz-ingress --ignore-not-found || true
           # immediately patch the finalizer to empty so deletion never hangs
           # finalizer is a lock kubernetes puts on the ingress to prevent deletion until the ALB is cleaned up
-          # if the controller gets confused and never removes it we force clear it here
+          # if the controller gets confused and never removes it we force clear it here. It sets finalizers in metadata for ingress to 0
           kubectl patch ingress wiz-ingress -p '{"metadata":{"finalizers":[]}}' --type=merge || true
 
       - name: Wait for ALB to be deleted
