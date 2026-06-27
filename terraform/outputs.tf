@@ -38,8 +38,3 @@ output "vpc_id" {
 output "ecr_repository_url" {
   value = aws_ecr_repository.wiz_ecr.repository_url
 }
-
-# hardcoded this to make connecting easier
-output "alb_url" {
-  value = "http://k8s-default-wizingre-867e94750f-545847822.us-east-1.elb.amazonaws.com"
-}

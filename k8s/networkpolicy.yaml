@@ -1,0 +1,54 @@
+# kubernetes ingress
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: wiz-app-ingress-policy
+  namespace: default
+spec:
+  podSelector:
+    matchLabels:
+      app: wiz-app
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        # 10.0.0.128/25 covers both public subnets where the ALB lives
+        - ipBlock:
+            cidr: 10.0.0.128/25
+      ports:
+        - protocol: TCP
+          port: 8080
+
+---
+# kubernetes egress network policy for wiz-app pods
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: wiz-app-egress-policy
+  namespace: default
+spec:
+  podSelector:
+    matchLabels:
+      app: wiz-app
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+# ec2 mongodb in public subnet, pods connect to its private IP on port 27017
+        - ipBlock:
+            cidr: 10.0.0.128/26
+      ports:
+        - protocol: TCP
+          port: 27017
+    - to:
+# internet access for ECR image pulls
+        - ipBlock:
+            cidr: 0.0.0.0/0
+      ports:
+# port 443 for ECR (HTTPS), 53 for DNS (Route53)
+        - protocol: TCP
+          port: 443
+        - protocol: TCP
+          port: 53
+        - protocol: UDP
+          port: 53
