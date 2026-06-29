@@ -1,4 +1,4 @@
-# installs the load balancer controller into helm -> which then reads the ingress.yaml and creates the ALB on AWS.
+# installs the load balancer controller -> which then reads the ingress.yaml and creates the ALB on AWS.
 resource "helm_release" "alb_controller" {
   name             = "aws-load-balancer-controller"
   repository       = "https://aws.github.io/eks-charts" # official AWS EKS charts repo

@@ -2,16 +2,16 @@
 module "vpc" {
   source = "terraform-aws-modules/vpc/aws"
   name   = "wiz-vpc"
-# assigns the 10.0.0.0/24 range to the entire VPC. 256 addresses (251 usable, 5 for aws)
-  cidr = "10.0.0.0/24"
+# assigns the 10.0.0.0/24 range to the entire VPC.
+  cidr = "10.0.0.0/16"
 # Defines the availaility zones in which the VPC spans EKS requires 2 or failure
   azs = ["us-east-1a", "us-east-1b"]
 # This will auto-assign public IP's to instances launched in public_subnets defined below
 # Needed to inherently create EC2 SSH access
   map_public_ip_on_launch = true
 # Creating private/public subnets
-  private_subnets = ["10.0.0.0/26", "10.0.0.64/26"]
-  public_subnets  = ["10.0.0.128/26", "10.0.0.192/26"]
+  public_subnets  = ["10.0.1.0/26", "10.0.1.64/26"]
+  private_subnets = ["10.0.2.0/26", "10.0.2.64/26"]
 
 # enables a nat gateway so that the resources inside private subnet (eks) can get to internet.
   enable_nat_gateway = true
@@ -31,5 +31,10 @@ module "vpc" {
     Terraform   = "true"
     Environment = "dev"
   }
+
 }
 
+resource "aws_vpc_endpoint" "s3" {
+    vpc_id = module.vpc.vpc_id
+    service_name = "com.amazonaws.us-east-1.s3"
+}
