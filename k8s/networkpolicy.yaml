@@ -14,7 +14,9 @@ spec:
     - from:
         # covers both public subnets where the ALB lives
         - ipBlock:
-            cidr: 10.0.0.0/16
+            cidr: 10.0.1.0/26
+        - ipBlock:
+            cidr: 10.0.1.64/26
       ports:
         - protocol: TCP
           port: 8080
@@ -35,7 +37,7 @@ spec:
     - to:
 # ec2 mongodb in public subnet, pods connect to its private IP on port 27017
         - ipBlock:
-            cidr: 10.0.1.0/24
+            cidr: 10.0.1.0/26
       ports:
         - protocol: TCP
           port: 27017
