@@ -14,7 +14,7 @@ spec:
     - from:
         # 10.0.0.128/25 covers both public subnets where the ALB lives
         - ipBlock:
-            cidr: 10.0.0.128/25
+            cidr: 10.0.0.0/16
       ports:
         - protocol: TCP
           port: 8080

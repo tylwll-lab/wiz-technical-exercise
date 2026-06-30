@@ -6,7 +6,7 @@ resource "aws_iam_policy" "alb_controller" {
 # IAM role that the load balancer controller pod gets with IRSA
 resource "aws_iam_role" "alb_controller" {
   name = "AmazonEKSLoadBalancerControllerRole"
-# trust policy allows the OIDC provider to exchange kubernetes tokens for AWS credentials
+# trust policy lets the EKS OIDC provider issue AWS credentials in exchange for a valid k8s service account token
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [{
@@ -45,7 +45,7 @@ resource "aws_iam_role" "ec2_role" {
     }]
   })
 }
-#
+
 # The next line attaches the EC2_admin role to administrator access policy. It is very dangerous.
 # AdministratorAccess grants full access to every AWS service on the account from the EC2 instance.
 # 169.254.169.254 is the AWS instance metadata service. It's an endpoint (HTTP) that lives inside every EC2 Instance.
