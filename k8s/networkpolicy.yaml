@@ -12,13 +12,12 @@ spec:
     - Ingress
   ingress:
     - from:
-        # 10.0.0.128/25 covers both public subnets where the ALB lives
+        # covers both public subnets where the ALB lives
         - ipBlock:
             cidr: 10.0.0.0/16
       ports:
         - protocol: TCP
           port: 8080
-
 ---
 # kubernetes egress network policy for wiz-app pods
 apiVersion: networking.k8s.io/v1
@@ -36,7 +35,7 @@ spec:
     - to:
 # ec2 mongodb in public subnet, pods connect to its private IP on port 27017
         - ipBlock:
-            cidr: 10.0.0.128/26
+            cidr: 10.0.1.0/24
       ports:
         - protocol: TCP
           port: 27017
