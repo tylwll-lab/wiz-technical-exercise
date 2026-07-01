@@ -10,7 +10,7 @@ module "eks" {
 # grants my wiz user odl_user_xyz eks cluster admin rights, found this may not be the default natively.
   enable_cluster_creator_admin_permissions = true
 
-  #changed from auto mode which wouldnt place the app pods in two seperate private subnets, also added scheduling constraint deployment.yaml.
+  # changed from auto mode which wouldnt place the app pods in two separate private subnets, also added scheduling constraint in deployment.yaml.
   eks_managed_node_groups = {
     general = {
       instance_types = ["t3.medium"]
@@ -29,4 +29,23 @@ module "eks" {
     Environment = "dev"
     Terraform   = "true"
   }
+}
+
+resource "aws_eks_addon" "vpc_cni" {
+  cluster_name = module.eks.cluster_name
+  addon_name   = "vpc-cni"
+  resolve_conflicts_on_create = "OVERWRITE"
+}
+
+resource "aws_eks_addon" "coredns" {
+  cluster_name = module.eks.cluster_name
+  addon_name   = "coredns"
+  resolve_conflicts_on_create = "OVERWRITE"
+  depends_on   = [aws_eks_addon.vpc_cni]
+}
+
+resource "aws_eks_addon" "kube_proxy" {
+  cluster_name = module.eks.cluster_name
+  addon_name   = "kube-proxy"
+  resolve_conflicts_on_create = "OVERWRITE"
 }
